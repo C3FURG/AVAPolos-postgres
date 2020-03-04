@@ -37,7 +37,7 @@ COPY root /
 RUN chmod u+x docker-entrypoint.sh mod_ids.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
-RUN echo "/usr/lib/postgresql/9.4/bin/:$PATH" >> /etc/environment
+RUN echo "PATH=/usr/lib/postgresql/9.4/bin/:$PATH" >> /etc/environment
 
 EXPOSE 5432
-CMD ["postgres"]
+CMD ["sh"]
