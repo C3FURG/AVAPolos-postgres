@@ -217,16 +217,28 @@ docker_setup_env() {
 	fi
 }
 
-# append POSTGRES_HOST_AUTH_METHOD to pg_hba.conf for "host" connections
+#This is EXTREMELY insecure! Fix ASAP.
 pg_setup_hba_conf() {
+	network=$(ipcalc -nb $(hostname -I) | grep "Network" | awk '{print $2}')
 	{
-		echo
-		if [ 'trust' = "$POSTGRES_HOST_AUTH_METHOD" ]; then
-			echo '# warning trust is enabled for all connections'
-			echo '# see https://www.postgresql.org/docs/12/auth-trust.html'
-		fi
-		echo "host all all all $POSTGRES_HOST_AUTH_METHOD"
+		echo "# warning trust is enabled for all connections on the docker network."
+		echo "# see https://www.postgresql.org/docs/12/auth-trust.html'"
+		echo "host all all $network trust"
 	} >> "$PGDATA/pg_hba.conf"
+}
+
+#This is EXTREMELY insecure! Fix ASAP.
+pg_setup_postgresql_conf() {
+	{
+		echo "listen_addresses = '*'"
+		echo "shared_preload_libraries = 'bdr'"
+		echo "wal_level = 'logical'"
+		echo "track_commit_timestamp = on"
+		echo "max_connections = 100"
+		echo "max_wal_senders = 10"
+		echo "max_replication_slots = 10"
+		echo "max_worker_processes = 10"
+	} >> "$PGDATA/postgresql.conf"
 }
 
 # start socket-only postgresql server for setting up or running scripts
@@ -304,6 +316,7 @@ _main() {
 
 			docker_init_database_dir
 			pg_setup_hba_conf
+			pg_setup_postgresql_conf
 
 			# PGPASSWORD is required for psql when authentication is required for 'local' connections via pg_hba.conf and is otherwise harmless
 			# e.g. when '--auth=md5' or '--auth-local=md5' is used in POSTGRES_INITDB_ARGS

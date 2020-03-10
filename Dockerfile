@@ -7,6 +7,7 @@ RUN set -ex; \
 	apt-get install -y --no-install-recommends \
 	gnupg \
 	dirmngr \
+	ipcalc \
 	; \
 	rm -rf /var/lib/apt/lists/*; \
 	fi
@@ -98,7 +99,9 @@ VOLUME /var/lib/postgresql/data
 
 COPY root /
 RUN chmod +x /docker-entrypoint.sh
+RUN chmod +x /healthcheck.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
+HEALTHCHECK CMD ["/healthcheck.sh"]
 
 EXPOSE 5432
 CMD ["postgres"]
