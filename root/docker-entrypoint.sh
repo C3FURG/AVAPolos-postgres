@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 source /etc/environment
-bash mod_ids.sh
 
 set -Eeo pipefail
 # TODO swap to -Eeuo pipefail above (after handling all potentially-unset variables)
@@ -271,6 +270,17 @@ _pg_want_help() {
 }
 
 _main() {
+
+	if ! [ -z "$PUID" ] && ! [ -z "$PGID" ]; then
+	    usermod -u $PUID postgres
+	    groupmod -g $PGID postgres
+	    echo "UID modificado: $PUID"
+	    echo "GID modificado: $PGID"
+			if [[ -d /var/lib/postgresql ]]; then
+				chown -R postgres:postgres /var/lib/postgresql
+			fi
+	fi
+
 	# if first arg looks like a flag, assume we want to run postgres server
 	if [ "${1:0:1}" = '-' ]; then
 		set -- postgres "$@"
