@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 
 source /etc/environment
-
 set -Eeo pipefail
+
+if ! [ -z "$PUID" ] && ! [ -z "$PGID" ]; then
+	if ! [ "$(id -u postgres)" = "$PUID" ] && ! [ "$(id -g postgres)" = "$PGID" ]; then
+		echo "Current postgres UID: $(id -u postgres)"
+		echo "Current postgres GID: $(id -g postgres)"
+		usermod -u $PUID postgres
+		groupmod -g $PGID postgres
+		echo "Modified postgres UID: $(id -u postgres)"
+		echo "Modified postgres GID: $(id -g postgres)"
+	fi
+fi
+
 # TODO swap to -Eeuo pipefail above (after handling all potentially-unset variables)
 
 # usage: file_env VAR [DEFAULT]
@@ -282,13 +293,6 @@ _pg_want_help() {
 }
 
 _main() {
-
-	if ! [ -z "$PUID" ] && ! [ -z "$PGID" ]; then
-	    usermod -u $PUID postgres
-	    groupmod -g $PGID postgres
-	    echo "UID modificado: $PUID"
-	    echo "GID modificado: $PGID"
-	fi
 	if [[ -d /var/lib/postgresql ]]; then
 		chown -R postgres:postgres /var/lib/postgresql
 	fi
