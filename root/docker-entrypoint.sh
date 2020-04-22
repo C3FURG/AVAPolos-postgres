@@ -228,13 +228,12 @@ docker_setup_env() {
 	fi
 }
 
-#This is EXTREMELY insecure! Fix ASAP.
+#This is insecure! Fix ASAP.
 pg_setup_hba_conf() {
-	network=$(ipcalc -nb $(hostname -I) | grep "Network" | awk '{print $2}')
 	{
 		echo "# warning trust is enabled for all connections on the docker network."
 		echo "# see https://www.postgresql.org/docs/12/auth-trust.html'"
-		echo "host all all $network trust"
+		echo "host all all 0.0.0.0/0 md5"
 	} >> "$PGDATA/pg_hba.conf"
 }
 
